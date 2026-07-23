@@ -1,7 +1,6 @@
 import discord
 from discord.ext import commands, tasks
-import database
-import asyncio
+from database import get_user, update_user
 
 LEVEL_CHANNEL_ID = 1529001439123210240
 
@@ -21,12 +20,12 @@ class Levels(commands.Cog):
 
         user_id = message.author.id
 
-        old_xp, old_level = database.get_user(user_id)
+        old_xp, old_level = get_user(user_id)
 
         new_xp = old_xp + 1
         new_level = new_xp // 100 + 1
 
-        database.update_user(user_id, new_xp, new_level)
+        update_user(user_id, new_xp, new_level)
 
         if new_level > old_level:
             channel = self.bot.get_channel(LEVEL_CHANNEL_ID)
@@ -35,6 +34,9 @@ class Levels(commands.Cog):
                 await channel.send(
                     f"🎉 مبروك {message.author.mention} وصلت لفل **{new_level}**!"
                 )
+
+        await self.bot.process_commands(message)
+
 
     @tasks.loop(minutes=1)
     async def voice_xp(self):
@@ -48,39 +50,37 @@ class Levels(commands.Cog):
 
                     user_id = member.id
 
-                    old_xp, old_level = database.get_user(user_id)
+                    old_xp, old_level = get_user(user_id)
 
                     new_xp = old_xp + 2
                     new_level = new_xp // 100 + 1
 
-                    database.update_user(
+                    update_user(
                         user_id,
                         new_xp,
                         new_level
                     )
 
                     if new_level > old_level:
-
-                        channel = self.bot.get_channel(
-                            LEVEL_CHANNEL_ID
-                        )
+                        channel = self.bot.get_channel(LEVEL_CHANNEL_ID)
 
                         if channel:
                             await channel.send(
                                 f"🎉 مبروك {member.mention} وصلت لفل **{new_level}**!"
                             )
 
+
     @commands.command()
     async def level(self, ctx, member: discord.Member = None):
 
         member = member or ctx.author
 
-        xp, level = database.get_user(member.id)
+        xp, level = get_user(member.id)
 
         await ctx.send(
             f"⭐ {member.mention}\n"
             f"المستوى: **{level}**\n"
-            f"XP: **{xp}/ {level*100}**"
+            f"XP: **{xp}/{level * 100}**"
         )
 
 
