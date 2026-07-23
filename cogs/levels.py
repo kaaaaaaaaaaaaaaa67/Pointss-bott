@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands, tasks
 from cogs.database import get_user, update_user
-
+# updated
 LEVEL_CHANNEL_ID = 1529001439123210240
 
 
